@@ -56,3 +56,45 @@ No interaction is required from the viewer - it uses the 3 preloaded roles and a
 - Recording was made with headless Chromium (Playwright) + ffmpeg transcode. Re-record anytime:
   `cd /Users/lilianchen/.workbuddy/binaries/node/workspace && NODE_PATH=$PWD/node_modules node record_demo.js`
 - The interactive demo is unchanged for normal visitors (English is now the default; Chinese toggle top-right).
+
+## Deploy to GitHub Pages (public, one command)
+
+The site is a static, no-backend page (index.html + tour.js + AI_Companion_Demo.mp4).
+To publish:
+
+1. Create a GitHub **Personal Access Token (PAT)** with the `repo` scope (https://github.com/settings/tokens).
+2. Run from this folder:
+
+   ```bash
+   chmod +x deploy.sh
+   ./deploy.sh <your_github_username> <your_pat>
+   ```
+
+   This creates the public repo `ai-companion-demo`, pushes `main`, and enables Pages.
+3. Wait ~1 minute, then open `https://<your_github_username>.github.io/ai-companion-demo/`.
+
+Notes:
+- The repo is **public** — the demo code and video are world-visible (intended as a portfolio piece). Your CV/Spec are NOT in this repo; send those by email.
+- Revoke/delete the PAT after the one-time deploy.
+- To update later: edit files, `git commit -am "..."`, then re-run `./deploy.sh` (it force-pushes).
+
+## Deploy to GitHub Pages (public, one command)
+
+The site is a static, no-backend page (index.html + tour.js + AI_Companion_Demo.mp4).
+To publish:
+
+1. Create a GitHub **Personal Access Token (PAT)** with the `repo` scope (https://github.com/settings/tokens).
+2. Run from this folder:
+
+   ```bash
+   chmod +x deploy.sh
+   ./deploy.sh <your_github_username> <your_pat>
+   ```
+
+   This creates the public repo `ai-companion-demo`, pushes `main`, and enables Pages.
+3. Wait ~1 minute, then open `https://<your_github_username>.github.io/ai-companion-demo/`.
+
+Notes:
+- The repo is **public** — the demo code and video are world-visible (intended as a portfolio piece). Your CV/Spec are NOT in this repo; send those by email.
+- Revoke/delete the PAT after the one-time deploy.
+- To update later: edit files, `git commit -am "..."`, then re-run `./deploy.sh` (it force-pushes).
