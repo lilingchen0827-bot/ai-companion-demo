@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Family Companion · Desktop Web Demo</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --panel:#ffffff; --ink:#1f2a44; --muted:#6b7689;
+    --line:#e4e8f0; --brand:#4f6ef7; --brand2:#7c5cff; --soft:#eef2ff;
+    --ok:#2bb673; --warn:#e8a33d; --pink:#ff7eb6; --radius:16px;
+    --shadow:0 8px 30px rgba(31,42,68,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;
+    background:linear-gradient(180deg,#eef2ff 0%,#f5f7fb 240px);color:var(--ink);line-height:1.6}
+  header{padding:26px 22px 10px;max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .hero h1{margin:0 0 6px;font-size:24px;letter-spacing:.5px}
+  .hero p{margin:0;color:var(--muted);font-size:14px}
+  .tag{display:inline-block;background:var(--soft);color:var(--brand);border:1px solid #dbe2ff;
+    padding:2px 10px;border-radius:999px;font-size:12px;margin:6px 6px 0 0}
+  .langsel{display:flex;gap:6px;align-items:center}
+  .langsel select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600}
+  nav{max-width:1080px;margin:6px auto 0;display:flex;gap:8px;flex-wrap:wrap;padding:0 22px}
+  nav button{ border:1px solid var(--line);background:var(--panel);color:var(--muted);
+    padding:9px 16px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:600}
+  nav button.active{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:var(--shadow)}
+  main{max-width:1080px;margin:18px auto 60px;padding:0 22px}
+  .view{display:none;animation:fade .25s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:17px}
+  .card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .role{padding:16px;border:1px solid var(--line);border-radius:14px;background:#fbfcff;position:relative}
+  .role .av{font-size:34px}
+  .role .nm{font-weight:700;margin:6px 0 2px}
+  .role .meta{font-size:12px;color:var(--muted)}
+  .role .acts{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  button.b{background:var(--brand);color:#fff;border:none;padding:8px 14px;border-radius:10px;
+    cursor:pointer;font-size:13px;font-weight:600}
+  button.b.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+  button.b.soft{background:var(--soft);color:var(--brand);border:1px solid #dbe2ff}
+  button.b.warn{background:#fff;color:var(--warn);border:1px solid var(--warn)}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input[type=text],textarea,select{width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+  textarea{resize:vertical;min-height:64px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .chat{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding:6px}
+  .msg{max-width:80%;padding:10px 13px;border-radius:14px;font-size:14px;white-space:pre-wrap}
+  .msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+  .msg.bot{align-self:flex-start;background:#f0f2f8;color:var(--ink);border-bottom-left-radius:4px}
+  .msg .who{font-size:11px;opacity:.7;display:block;margin-bottom:2px}
+  .composer{display:flex;gap:8px;margin-top:12px;align-items:center}
+  .composer input{flex:1}
+  .mem{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fbfcff}
+  .mem .ct{font-size:14px}
+  .mem .own{font-size:12px;color:var(--muted);margin:4px 0 8px}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--soft);
+    color:var(--brand);margin:2px;cursor:pointer}
+  .pill.on{background:var(--ok);color:#fff}
+  .note{font-size:12px;color:var(--muted);background:#fffbe9;border:1px solid #f3e2b3;
+    padding:10px 12px;border-radius:10px}
+  .hidden{display:none!important}
+  .imgprev{width:90px;height:90px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+  .flow{font-size:13px;color:var(--muted);margin:2px 0 0}
+  code{background:#eef2ff;padding:1px 6px;border-radius:6px;font-size:12px}
+  #capbar{position:fixed;left:0;right:0;bottom:0;background:rgba(31,42,68,.92);color:#fff;padding:16px 22px;font-size:15px;z-index:80;display:none;align-items:center;gap:12px;box-shadow:0 -6px 20px rgba(31,42,68,.18)}
+  #capbar.show{display:flex}
+  #capbar .num{background:var(--brand);border-radius:999px;padding:3px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+  #capbar #captext{line-height:1.5}
+  .samplephoto{width:90px;height:90px;border-radius:12px;border:1px solid var(--line);background:linear-gradient(135deg,#7c5cff,#4f6ef7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <h1 data-i18n="title">AI 智能家庭伴侣 · 桌面端 Web Demo</h1>
+    <p data-i18n="subtitle">多角色 · 可培养 · 可记忆 · 可协作的 AI 陪伴系统 —— 原型演示</p>
+    <div>
+      <span class="tag" data-i18n="tag1">原型 Prototype</span>
+      <span class="tag" data-i18n="tag2">无后端 · 本地运行</span>
+      <span class="tag" data-i18n="tag3">浏览器原生语音</span>
+    </div>
+  </div>
+  <div class="langsel">
+    <span data-i18n="lang_label">语言</span>
+    <select id="langSel" onchange="setLang(this.value)">
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+</header>
+
+<nav>
+  <button data-v="roles" class="active" data-i18n="nav_roles">① 角色创建</button>
+  <button data-v="chat" data-i18n="nav_chat">② 语音对话</button>
+  <button data-v="collab" data-i18n="nav_collab">③ 多角色协作</button>
+  <button data-v="memory" data-i18n="nav_memory">④ 记忆与权限</button>
+  <button data-v="image" data-i18n="nav_image">⑤ 图像模式</button>
+</nav>
+
+<main>
+  <!-- ① ROLES -->
+  <section class="view active" id="roles">
+    <div class="card">
+      <h2 data-i18n="roles_title">角色库（用户培养的角色）</h2>
+      <p class="sub" data-i18n="roles_sub">展示「用户可创建、培养多个独立人格与独立记忆的 AI 角色」。已预置 3 个演示角色。</p>
+      <div class="grid" id="roleGrid"></div>
+      <div style="margin-top:14px"><button class="b" onclick="openCreate()" data-i18n="create_btn">＋ 创建新角色</button></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="flow_title">创建流程（演示）</h2>
+      <p class="sub" data-i18n="flow_sub">按 demo 脚本：上传人物照片 → 输入姓名/背景/性格 → 设置关系与说话方式 → 设置行为边界。</p>
+      <ol class="flow">
+        <li data-i18n="step1">上传一张人物照片，作为角色形象参考（本地预览，不上传服务器）。</li>
+        <li data-i18n="step2">输入角色姓名、背景与性格。</li>
+        <li data-i18n="step3">设置角色与你的关系、希望它如何说话与陪伴。</li>
+        <li data-i18n="step4">设置行为边界（禁止话题）。</li>
+        <li data-i18n="step5">保存即进入角色库，可对话 / 协作 / 授权记忆。</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ② CHAT -->
+  <section class="view" id="chat">
+    <div class="card">
+      <h2 data-i18n="chat_title">语音唤醒 & 角色对话</h2>
+      <p class="sub" data-i18n="chat_sub">选择已创建角色，进行文字或语音对话；角色拥有独立声音与风格，并能记住之前的交流。</p>
+      <div class="row" style="align-items:center">
+        <label style="margin:0 8px 0 0" data-i18n="label_role">当前角色</label>
+        <select id="chatRole" onchange="switchChatRole()"></select>
+        <button class="b ghost" id="micBtn" onclick="toggleMic()">🎙 语音输入</button>
+        <button class="b soft" id="ttsBtn" onclick="toggleTTS()">🔊 语音播报：开</button>
+      </div>
+      <div class="chat" id="chatBox"></div>
+      <div class="composer">
+        <input type="text" id="chatInput" placeholder="" onkeydown="if(event.key==='Enter')sendChat()" />
+        <button class="b" onclick="sendChat()" data-i18n="send_btn">发送</button>
+      </div>
+      <p class="flow" data-i18n="chat_tip">提示：点「🎙 语音输入」可直接用麦克风说话（Chrome 支持最佳）；「🔊 语音播报」会让角色用语音念出回复。</p>
+    </div>
+  </section>
+
+  <!-- ③ COLLAB -->
+  <section class="view" id="collab">
+    <div class="card">
+      <h2 data-i18n="collab_title">多角色协作</h2>
+      <p class="sub" data-i18n="collab_sub">演示「用户授权下多角色共同回应」。输入一个问题，三个预设角色分别从各自角度回答。</p>
+      <div class="composer">
+        <input type="text" id="collabInput" placeholder="" onkeydown="if(event.key==='Enter')runCollab()" />
+        <button class="b" onclick="runCollab()" data-i18n="collab_btn">让三个角色回答</button>
+      </div>
+      <div class="row" style="margin:10px 0">
+        <label style="margin:0 8px 0 0" data-i18n="label_mode">呈现方式</label>
+        <select id="collabMode">
+          <option value="split" data-i18n="mode_split">分别回答（各角色独立意见）</option>
+          <option value="merge" data-i18n="mode_merge">主角色整合（导师汇总）</option>
+        </select>
+      </div>
+      <div class="chat" id="collabBox"></div>
+    </div>
+  </section>
+
+  <!-- ④ MEMORY -->
+  <section class="view" id="memory">
+    <div class="card">
+      <h2 data-i18n="mem_title">记忆权限与角色成长</h2>
+      <p class="sub" data-i18n="mem_sub">核心差异化功能：用户告诉某角色一件私事 → 默认仅该角色可访问 → 用户主动授权其他角色 → 被授权角色即可调用。</p>
+      <div id="memList"></div>
+      <div class="note" style="margin-top:10px" data-i18n="mem_note">演示步骤：在「② 语音对话」里对知心朋友说句私事并点该条消息的「＋记忆」；回到此处把它授权给人生导师；再切到导师对话问「你还记得我之前说的吗」，导师即可召回。</div>
+    </div>
+  </section>
+
+  <!-- ⑤ IMAGE -->
+  <section class="view" id="image">
+    <div class="card">
+      <h2 data-i18n="img_title">图像模式（多模态示意）</h2>
+      <p class="sub" data-i18n="img_sub">上传一张照片，选择角色，生成「人格条件化」的文案（呼应 mood_pipeline：图像→情感→人格文案）。浏览器内为示意生成，接入视觉模型后即可真实理解图像。</p>
+      <div class="row" style="align-items:flex-end">
+        <div>
+          <label data-i18n="label_upload">上传照片</label>
+          <input type="file" id="imgFile" accept="image/*" onchange="previewImg()" />
+        </div>
+        <div id="imgWrap"></div>
+        <div style="flex:1;min-width:200px">
+          <label data-i18n="label_imgrole">选择角色</label>
+          <select id="imgRole"></select>
+        </div>
+        <button class="b" onclick="genImageCopy()" data-i18n="img_btn">生成角色文案</button>
+      </div>
+      <div class="chat" id="imgBox" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <div class="card note" data-i18n="footer">
+    说明：本页面为产品概念原型，用于演示交互与价值主张。对话回复由前端「人格模板引擎」生成（部分后台逻辑为简化模拟），符合 Spec 中「MVP 阶段部分后台逻辑可简化」的原则。接入真实大模型（LLM + TTS + 视觉模型 + 向量记忆库）后即可作为可上线 MVP。
+  </div>
+</main>
+
+<div id='capbar'><span class='num' id='capnum'></span><span id='captext'></span></div>
+
+
+<!-- Create Role Modal -->
+<div id="modal" class="hidden" style="position:fixed;inset:0;background:rgba(20,28,48,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50">
+  <div class="card" style="width:min(520px,100%);max-height:90vh;overflow:auto">
+    <h2 data-i18n="modal_title">创建新角色</h2>
+    <p class="sub" data-i18n="modal_sub">填写角色设定（可留空，演示仅展示核心流程）。</p>
+    <div class="row" style="align-items:flex-end">
+      <div style="flex:1">
+        <label data-i18n="f_avatar">角色形象照片</label>
+        <input type="file" id="newAv" accept="image/*" onchange="prevAv()" />
+      </div>
+      <div id="newAvWrap"></div>
+    </div>
+    <label data-i18n="f_name">姓名</label><input type="text" id="newName" placeholder="" />
+    <label data-i18n="f_bg">背景</label><textarea id="newBg" placeholder=""></textarea>
+    <label data-i18n="f_per">性格</label><input type="text" id="newPer" placeholder="" />
+    <label data-i18n="f_rel">与你的关系</label><input type="text" id="newRel" placeholder="" />
+    <label data-i18n="f_style">说话方式</label><input type="text" id="newStyle" placeholder="" />
+    <label data-i18n="f_bound">行为边界</label><input type="text" id="newBound" placeholder="" />
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <button class="b warn" onclick="closeCreate()" data-i18n="cancel_btn">取消</button>
+      <button class="b" onclick="saveRole()" data-i18n="save_btn">保存角色</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== i18n ===================== */
+const I18N={
+ zh:{
+  title:"AI 智能家庭伴侣 · 桌面端 Web Demo",
+  subtitle:"多角色 · 可培养 · 可记忆 · 可协作的 AI 陪伴系统 —— 原型演示",
+  tag1:"原型 Prototype",tag2:"无后端 · 本地运行",tag3:"浏览器原生语音",
+  lang_label:"语言",
+  nav_roles:"① 角色创建",nav_chat:"② 语音对话",nav_collab:"③ 多角色协作",nav_memory:"④ 记忆与权限",nav_image:"⑤ 图像模式",
+  roles_title:"角色库（用户培养的角色）",roles_sub:"展示「用户可创建、培养多个独立人格与独立记忆的 AI 角色」。已预置 3 个演示角色。",
+  create_btn:"＋ 创建新角色",
+  flow_title:"创建流程（演示）",flow_sub:"按 demo 脚本：上传人物照片 → 输入姓名/背景/性格 → 设置关系与说话方式 → 设置行为边界。",
+  step1:"上传一张人物照片，作为角色形象参考（本地预览，不上传服务器）。",
+  step2:"输入角色姓名、背景与性格。",step3:"设置角色与你的关系、希望它如何说话与陪伴。",
+  step4:"设置行为边界（禁止话题）。",step5:"保存即进入角色库，可对话 / 协作 / 授权记忆。",
+  chat_title:"语音唤醒 & 角色对话",chat_sub:"选择已创建角色，进行文字或语音对话；角色拥有独立声音与风格，并能记住之前的交流。",
+  label_role:"当前角色",mic_btn:"🎙 语音输入",tts_on:"🔊 语音播报：开",tts_off:"🔊 语音播报：关",
+  chat_ph:"说点什么…（试试：『我跟你说个秘密：我下周要去面试』）",send_btn:"发送",
+  chat_tip:"提示：点「🎙 语音输入」可直接用麦克风说话（Chrome 支持最佳）；「🔊 语音播报」会让角色用语音念出回复。",
+  collab_title:"多角色协作",collab_sub:"演示「用户授权下多角色共同回应」。输入一个问题，三个预设角色分别从各自角度回答。",
+  collab_ph:"说一句：『我想听听你们三个对这个问题的看法：要不要换工作？』",collab_btn:"让三个角色回答",
+  label_mode:"呈现方式",mode_split:"分别回答（各角色独立意见）",mode_merge:"主角色整合（导师汇总）",
+  mem_title:"记忆权限与角色成长",mem_sub:"核心差异化功能：用户告诉某角色一件私事 → 默认仅该角色可访问 → 用户主动授权其他角色 → 被授权角色即可调用。",
+  mem_note:"演示步骤：在「② 语音对话」里对知心朋友说句私事并点该条消息的「＋记忆」；回到此处把它授权给人生导师；再切到导师对话问「你还记得我之前说的吗」，导师即可召回。",
+  img_title:"图像模式（多模态示意）",img_sub:"上传一张照片，选择角色，生成「人格条件化」的文案（呼应 mood_pipeline：图像→情感→人格文案）。浏览器内为示意生成，接入视觉模型后即可真实理解图像。",
+  label_upload:"上传照片",label_imgrole:"选择角色",img_btn:"生成角色文案",
+  modal_title:"创建新角色",modal_sub:"填写角色设定（可留空，演示仅展示核心流程）。",
+  f_avatar:"角色形象照片",f_name:"姓名",f_name_ph:"例如：知心朋友",f_bg:"背景",
+  f_bg_ph:"例如：像《名侦探柯南》里小兰的好朋友原子一样性格的朋友",
+  f_per:"性格",f_per_ph:"例如：活泼开朗、善于倾听、温暖治愈",
+  f_rel:"与你的关系",f_rel_ph:"例如：最好的闺蜜",f_style:"说话方式",f_style_ph:"例如：口语化、爱用语气词、短句",
+  f_bound:"行为边界",f_bound_ph:"例如：不替我做重大决定、不诊断心理问题",
+  cancel_btn:"取消",save_btn:"保存角色",
+  footer:"说明：本页面为产品概念原型，用于演示交互与价值主张。对话回复由前端「人格模板引擎」生成（部分后台逻辑为简化模拟），符合 Spec 中「MVP 阶段部分后台逻辑可简化」的原则。接入真实大模型（LLM + TTS + 视觉模型 + 向量记忆库）后即可作为可上线 MVP。",
+  who_me:"我",sys_label:"系统",chat_btn:"对话",
+  toast_mem:"已存为「{n}」的私有记忆",toast_no_voice:"当前浏览器不支持语音输入（建议 Chrome）",
+  mem_none:"暂无记忆。去「② 语音对话」对某个角色说句私事并点「＋记忆」试试。",mem_other_none:"无其他角色",
+  img_no:"先上传一张照片吧～",img_me:"[上传了一张照片]",
+  secret_hint:"（点此存为当前角色的私有记忆）"
+ },
+ en:{
+  title:"AI Family Companion · Desktop Web Demo",
+  subtitle:"A multi-role, cultivatable, memory-enabled, collaborative AI companion system — prototype demo",
+  tag1:"Prototype",tag2:"No backend · Runs locally",tag3:"Browser-native voice",
+  lang_label:"Language",
+  nav_roles:"① Create Roles",nav_chat:"② Voice Chat",nav_collab:"③ Multi-role Collab",nav_memory:"④ Memory & Access",nav_image:"⑤ Image Mode",
+  roles_title:"Role Library (user-cultivated roles)",
+  roles_sub:"Demonstrates that users can create and cultivate multiple AI roles with independent personas and memories. 3 demo roles preloaded.",
+  create_btn:"＋ Create Role",
+  flow_title:"Creation Flow (demo)",
+  flow_sub:"Per the demo script: upload a photo → enter name/background/personality → set relationship & speaking style → set behavior boundaries.",
+  step1:"Upload a character photo as the role's visual reference (previewed locally, never uploaded).",
+  step2:"Enter the role's name, background and personality.",
+  step3:"Set its relationship to you and how it should talk and accompany you.",
+  step4:"Set behavior boundaries (forbidden topics).",
+  step5:"Save to enter the role library — chat / collaborate / grant memory access.",
+  chat_title:"Voice Wake & Role Chat",
+  chat_sub:"Pick a created role and chat by text or voice; each role has its own voice & style and remembers prior conversation.",
+  label_role:"Active role",mic_btn:"🎙 Voice input",tts_on:"🔊 Speak: On",tts_off:"🔊 Speak: Off",
+  chat_ph:"Say something… (try: 'I'll tell you a secret: I have an interview next week')",send_btn:"Send",
+  chat_tip:"Tip: click 🎙 Voice input to speak via mic (best in Chrome); 🔊 Speak makes the role read replies aloud.",
+  collab_title:"Multi-role Collaboration",
+  collab_sub:"Demonstrates multi-role responses under user authorization. Enter a question; three preset roles answer from their own perspectives.",
+  collab_ph:"e.g. 'I'd like to hear what all three of you think about this: should I change jobs?'",collab_btn:"Ask the three roles",
+  label_mode:"Presentation",mode_split:"Separate answers (each role independent)",mode_merge:"Lead role synthesizes (mentor summarizes)",
+  mem_title:"Memory Access & Role Growth",
+  mem_sub:"Key differentiator: user tells one role a private matter → by default only that role can access → user grants other roles → granted roles can recall it.",
+  mem_note:"Demo steps: in Voice Chat, tell the Confidant a secret and click '＋ Memory' on that message; return here and grant the Mentor access; switch to the Mentor and ask 'Do you still remember what I told you?', and the Mentor can recall it.",
+  img_title:"Image Mode (multimodal demo)",
+  img_sub:"Upload a photo, pick a role, and generate persona-conditioned copy (echoing mood_pipeline: image→affect→persona text). In-browser generation is illustrative; connect a vision model for real understanding.",
+  label_upload:"Upload photo",label_imgrole:"Pick role",img_btn:"Generate role copy",
+  modal_title:"Create New Role",modal_sub:"Fill in role settings (may be left blank; demo shows the core flow).",
+  f_avatar:"Role avatar photo",f_name:"Name",f_name_ph:"e.g. Confidant",f_bg:"Background",
+  f_bg_ph:"e.g. a friend with the bright, caring personality of Ayumi from Detective Conan",
+  f_per:"Personality",f_per_ph:"e.g. upbeat, a good listener, warm and healing",
+  f_rel:"Relationship to you",f_rel_ph:"e.g. best friend",f_style:"Speaking style",f_style_ph:"e.g. casual, uses fillers, short sentences",
+  f_bound:"Behavior boundaries",f_bound_ph:"e.g. won't make major decisions for me, won't diagnose",
+  cancel_btn:"Cancel",save_btn:"Save Role",
+  footer:"Note: This page is a product-concept prototype for demonstrating interaction and value proposition. Replies are generated by a front-end persona template engine (some backend logic simplified), consistent with the Spec's principle that 'MVP-phase backend logic may be simplified'. Connect a real LLM (LLM + TTS + vision model + vector memory) to ship a production MVP.",
+  who_me:"Me",sys_label:"System",chat_btn:"Chat",
+  toast_mem:"Saved as private memory of '{n}'",toast_no_voice:"Current browser doesn't support voice input (use Chrome)",
+  mem_none:"No memories yet. Go to Voice Chat, tell a role a secret and click '＋ Memory'.",mem_other_none:"No other roles",
+  img_no:"Upload a photo first~",img_me:"[uploaded a photo]",
+  secret_hint:"(click to save as this role's private memory)"
+ }
+};
+let lang=localStorage.getItem('companion_lang')||'en';
+function t(k){return (I18N[lang][k]!=null?I18N[lang][k]:k);}
+
+/* ===================== Data ===================== */
+const LS='companion_demo_v1';
+let app=JSON.parse(localStorage.getItem(LS)||'null');
+if(!app){
+  app={roles:[],memories:[],chats:{},activeRole:null,tts:true};
+  const presets=[
+    {id:'friend',name:'知心朋友',name_en:'Confidant (Ayumi-type)',avatar:'🧡',
+      bg:'像《名侦探柯南》里小兰的好朋友原子一样性格的朋友',bg_en:'A friend with the bright, caring personality of Ayumi (Ran\'s best friend) in Detective Conan',
+      per:'活泼开朗、善于倾听、温暖治愈、会陪你吐槽也会给你打气',per_en:'Upbeat, a great listener, warm and healing; cheers you up',
+      rel:'最好的闺蜜/兄弟',rel_en:'Best friend / buddy',
+      style:'口语化、爱用语气词、短句、感叹号',style_en:'Casual, uses fillers, short upbeat sentences',
+      bound:'不替你做重大决定、不诊断心理问题',bound_en:"Won't make major decisions; won't diagnose"},
+    {id:'mentor',name:'人生导师',name_en:'Life Mentor (Dr. Agasa-type)',avatar:'📘',
+      bg:'像阿笠博士一样沉稳博学的导师',bg_en:'A calm, wise mentor like Dr. Agasa',
+      per:'理性、博学、循循善诱、擅长拆解问题',per_en:'Rational, knowledgeable, guides step by step, breaks down problems',
+      rel:'人生与职业发展的引路人',rel_en:'Guide for life & career',
+      style:'条理清晰、引用式、温和客观',style_en:'Clear structure, quote-like, gentle but objective',
+      bound:'不替你做重大决定、不诊断心理问题',bound_en:"Won't make major decisions; won't diagnose"},
+    {id:'family',name:'家庭伙伴',name_en:'Family Companion (Ran-type sister)',avatar:'🏠',
+      bg:'像小兰一样亲切的姐姐',bg_en:'A caring older-sister figure like Ran',
+      per:'亲切细心、主动关怀、像家人一样惦记你',per_en:'Warm, attentive, proactively caring like family',
+      rel:'像姐姐一样的家庭伙伴',rel_en:'Family-like companion (older sister)',
+      style:'温柔、生活化、爱叮嘱',style_en:'Gentle, homely, loves to remind you',
+      bound:'不越界隐私',bound_en:"Won't overstep privacy"}
+  ];
+  presets.forEach(r=>app.roles.push(r));
+  app.activeRole='friend';save();
+}
+function save(){localStorage.setItem(LS,JSON.stringify(app));}
+function roleName(id){const r=app.roles.find(x=>x.id===id);if(!r)return id;return lang==='en'?r.name_en:r.name;}
+
+/* bilingual template banks */
+const REPLIES={
+ friend:[
+  {zh:"诶，你说的这个「{u}」，我超懂的！跟我说说嘛，我陪你聊～",en:"Hey, I totally get what you mean by '{u}'! Tell me more, I'm here with you~"},
+  {zh:"哈哈这事我也经历过！「{u}」你最棒啦，别给自己太大压力哦～",en:"Haha I've been through something like that! About '{u}', you're amazing — don't be too hard on yourself!"},
+  {zh:"听到你说「{u}」，我有点心疼。要不要一起吐槽一下？我永远站你这边！",en:"Hearing you say '{u}', I feel for you. Wanna vent together? I've always got your back!"}
+ ],
+ mentor:[
+  {zh:"关于「{u}」，我们先理清几个关键点。从长远看，我建议分步推进。",en:"Regarding '{u}', let's first clarify the key points. Long-term, I'd suggest taking it step by step."},
+  {zh:"嗯，这是个值得深思的问题。「{u}」背后，或许可以换个角度分析。",en:"Hmm, that's worth thinking about. Behind '{u}', maybe we can look at it from another angle."},
+  {zh:"作为你的导师，我理性地帮你拆解「{u}」：先看清目标，再排优先级。",en:"As your mentor, let me break '{u}' down rationally: see the goal clearly, then prioritize."}
+ ],
+ family:[
+  {zh:"亲爱的，「{u}」这件事交给我惦记着就好～先喝口水休息下？",en:"Dear, I'll keep '{u}' in mind for you~ Why not take a sip of water and rest a bit?"},
+  {zh:"听到「{u}」啦，我帮你记在心里了。需要我提醒你什么吗？",en:"Heard about '{u}' — I've tucked it in my heart. Want me to remind you of anything?"},
+  {zh:"别担心「{u}」，有我在呢。今天天气不错，出去走走？",en:"Don't worry about '{u}', I'm here. The weather's nice today, how about a little walk?"}
+ ],
+ default:[
+  {zh:"关于「{u}」，我顺着你的想法接一句～",en:"About '{u}', let me pick up on your thought~"},
+  {zh:"嗯，「{u}」，我记下了，咱们慢慢聊。",en:"Hmm, '{u}', noted — let's chat slowly."}
+ ]
+};
+const COLLAB={
+ friend:{zh:"（知心朋友）诶「{t}」啊！听你这么一说我也跟着操心～别想太多，不管怎样我都挺你，开心最重要啦！",en:"(Confidant) Oh '{t}'! Hearing you say it, I'm worried too~ Don't overthink, I've got you no matter what — your happiness comes first!"},
+ mentor:{zh:"（人生导师）关于「{t}」，建议先明确目标与约束，再分解成可执行的小步，避免一次押注。理性看待得失会更稳。",en:"(Mentor) On '{t}', I suggest clarifying goals and constraints first, then breaking it into actionable steps to avoid betting everything at once. A rational view of gains and losses is steadier."},
+ family:{zh:"（家庭伙伴）「{t}」我也惦记着呢～别光顾着忙，记得按时吃饭、早点休息，事情咱们一起慢慢捋。",en:"(Family Companion) I'm thinking about '{t}' too~ Don't just stay busy — eat on time and rest early, we'll sort it out together."},
+ default:{zh:"（{n}）关于「{t}」，我有我的角度，咱们细聊～",en:"({n}) On '{t}', I have my own angle — let's talk it through~"}
+};
+const IMGCOPIES={
+ friend:[
+  {zh:"看到这张照片，我就觉得你今天状态不错呀～要不要跟我说说拍照时的心情？",en:"Seeing this photo, I feel you're in a good mood today~ Wanna tell me how you felt when taking it?"},
+  {zh:"哇这张好有故事感！我喜欢，像你一样有温度～",en:"Aw this is so full of story! I like it — it's as warm as you~"},
+  {zh:"嘿，这张我存进心里啦，以后看到就会想起现在的你。",en:"Hey, I've saved this in my heart; I'll think of you now whenever I see it."}
+ ],
+ mentor:[
+  {zh:"这张照片里有些细节值得留意。不妨想想它想传达什么，我们能从中得到一点启发。",en:"There are details in this photo worth noticing. Think about what it's trying to say — we can draw a little inspiration."},
+  {zh:"画面挺有结构的。就像做事，先看清全局再下笔，会更稳。",en:"The composition is quite structured. Like doing things, see the big picture before you start — steadier."},
+  {zh:"一张好照片也是一次观察练习——多留意，你会越来越懂自己。",en:"A good photo is also a practice in observation — notice more, and you'll understand yourself better."}
+ ],
+ family:[
+  {zh:"这张照片我帮你收好啦，记得当时开开心心的哦～",en:"I've kept this photo safe for you, remember the happy moment~"},
+  {zh:"看到它就想到要提醒你：拍照开心，生活也要照顾好自己。",en:"Seeing it reminds me to tell you: be happy when shooting, but also take care of yourself in life."},
+  {zh:"乖，这张真好看。累了就看看它，我一直在。",en:"Good, this is pretty. When tired, look at it — I'm always here."}
+ ],
+ default:[{zh:"这张照片很有感觉，我记下了。",en:"This photo feels special, I've noted it."}]
+};
+
+/* ===================== Nav ===================== */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(b.dataset.v).classList.add('active');
+  if(b.dataset.v==='chat'||b.dataset.v==='image') fillRoleSelects();
+  if(b.dataset.v==='memory') renderMemory();
+});
+
+/* ===================== Roles ===================== */
+function renderRoles(){
+  const g=document.getElementById('roleGrid');g.innerHTML='';
+  app.roles.forEach(r=>{
+    const d=document.createElement('div');d.className='role';
+    d.innerHTML=`<div class="av">${r.avatar||'🙂'}</div>
+      <div class="nm">${esc(lang==='en'?r.name_en:r.name)}</div>
+      <div class="meta">${esc(lang==='en'?r.rel_en:r.rel||'')}</div>
+      <div class="meta" style="margin-top:6px">${esc((lang==='en'?r.per_en:r.per||'').slice(0,46))}</div>
+      <div class="acts"><button class="b soft" onclick="goChat('${r.id}')">${t('chat_btn')}</button></div>`;
+    g.appendChild(d);
+  });
+}
+function openCreate(){document.getElementById('modal').classList.remove('hidden');}
+function closeCreate(){document.getElementById('modal').classList.add('hidden');}
+function prevAv(){const f=document.getElementById('newAv').files[0];if(f){const rd=new FileReader();rd.onload=e=>{document.getElementById('newAvWrap').innerHTML=`<img class="imgprev" src="${e.target.result}">`;};rd.readAsDataURL(f);}}
+function saveRole(){
+  const f=document.getElementById('newAv').files[0];
+  const done=(av)=>{
+    app.roles.push({id:'r'+Date.now(),name:document.getElementById('newName').value||'未命名角色',
+      name_en:document.getElementById('newName').value||'Unnamed Role',avatar:av||'🙂',
+      bg:document.getElementById('newBg').value,bg_en:document.getElementById('newBg').value,
+      per:document.getElementById('newPer').value,per_en:document.getElementById('newPer').value,
+      rel:document.getElementById('newRel').value,rel_en:document.getElementById('newRel').value,
+      style:document.getElementById('newStyle').value,style_en:document.getElementById('newStyle').value,
+      bound:document.getElementById('newBound').value,bound_en:document.getElementById('newBound').value});
+    save();renderRoles();fillRoleSelects();closeCreate();
+  };
+  if(f){const rd=new FileReader();rd.onload=e=>done(e.target.result);rd.readAsDataURL(f);}else done(null);
+}
+
+/* ===================== Chat ===================== */
+function fillRoleSelects(){
+  ['chatRole','imgRole'].forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML='';
+    app.roles.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=lang==='en'?r.name_en:r.name;s.appendChild(o);});});
+  if(app.activeRole)document.getElementById('chatRole').value=app.activeRole;
+}
+function goChat(id){app.activeRole=id;save();fillRoleSelects();document.querySelector('nav button[data-v=chat]').click();switchChatRole();}
+function switchChatRole(){app.activeRole=document.getElementById('chatRole').value;save();renderChat();}
+function renderChat(){
+  const box=document.getElementById('chatBox');box.innerHTML='';
+  (app.chats[app.activeRole]||[]).forEach(m=>addMsg(box,m.from,m.text,m.who));
+}
+function addMsg(box,from,text,who){
+  const d=document.createElement('div');d.className='msg '+(from==='me'?'me':'bot');
+  const whoTxt = from==='me'?t('who_me'):who;
+  let html=`<span class="who">${esc(whoTxt)}</span>${esc(text)}`;
+  if(from==='me'){html+=` <span class="pill" onclick="saveMemFromInput()" title="${t('secret_hint')}">＋${lang==='en'?'Mem':'记忆'}</span>`;}
+  d.innerHTML=html;box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+function accessibleMemories(roleId){return app.memories.filter(m=>m.owner===roleId||(m.shared||[]).includes(roleId));}
+function sendChat(){
+  const inp=document.getElementById('chatInput');const text=inp.value.trim();if(!text)return;
+  const rid=app.activeRole;
+  (app.chats[rid]=app.chats[rid]||[]).push({from:'me',text,who:t('who_me')});
+  addMsg(document.getElementById('chatBox'),'me',text,t('who_me'));
+  inp.value='';
+  setTimeout(()=>{
+    const reply=botReply(rid,text);
+    (app.chats[rid]=app.chats[rid]||[]).push({from:'bot',text:reply,who:roleName(rid)});
+    addMsg(document.getElementById('chatBox'),'bot',reply,roleName(rid));
+    if(app.tts)speak(reply);
+  },420);
+}
+function botReply(rid,text){
+  const r=app.roles.find(x=>x.id===rid);
+  const mem=accessibleMemories(rid);
+  const recall=/记得|之前|你说过|上次|告诉过|remember|told|said|earlier|before/i.test(text)&&mem.length;
+  const u=text.length>24?text.slice(0,24)+'…':text;
+  if(recall){
+    const c=mem[mem.length-1].content;
+    const tails={
+      zh:{friend:'别担心，有我陪你一起面对！',mentor:'我们把它拆成小步、定好优先级，一步步来。',family:'我帮你记着，也会一直提醒你，好好休息哦。'},
+      en:{friend:"You've got this - I am right here with you every step!",mentor:"Let us turn it into small, clear steps and set priorities.",family:"I will keep it in mind and remind you - now rest well, okay?"}
+    };
+    const tl=(tails[lang]||tails.en)[r.id]||'';
+    return (lang==='zh'?'我记得你跟我说过：「'+c+'」。':'I remember you told me: "'+c+'". ')+tl;
+  }
+  const tmpl=pick((REPLIES[r.id]||REPLIES.default).map(x=>x[lang]));
+  return tmpl.replace('{u}',u);
+}
+function saveMemFromInput(){
+  const inp=document.getElementById('chatInput');const t0=inp.value.trim();if(!t0){toast(t('img_no'));return;}
+  app.memories.push({id:'m'+Date.now(),content:t0,owner:app.activeRole,shared:[],created:Date.now()});
+  save();renderMemory();toast(t('toast_mem').replace('{n}',roleName(app.activeRole)));
+}
+let toastTimer;
+function toast(m){const t0=document.createElement('div');t0.textContent=m;t0.style.cssText='position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#1f2a44;color:#fff;padding:8px 16px;border-radius:999px;font-size:13px;z-index:99';document.body.appendChild(t0);clearTimeout(toastTimer);toastTimer=setTimeout(()=>t0.remove(),1800);}
+
+/* TTS + Mic */
+function toggleTTS(){app.tts=!app.tts;save();document.getElementById('ttsBtn').textContent=(lang==='zh'?'🔊 语音播报：':'🔊 Speak: ')+(app.tts?(lang==='zh'?'开':'On'):(lang==='zh'?'关':'Off'));}
+function speak(text){try{const u=new SpeechSynthesisUtterance(text);const zh=[...speechSynthesis.getVoices()].find(v=>/zh|Chinese|中文|Yue|Han/i.test(v.lang+v.name));if(zh)u.voice=zh;u.lang='zh-CN';speechSynthesis.speak(u);}catch(e){}}
+let micOn=false,rec;
+function toggleMic(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){toast(t('toast_no_voice'));return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;rec=new SR();rec.lang='zh-CN';rec.interimResults=false;
+  rec.onresult=e=>{document.getElementById('chatInput').value=e.results[0][0].transcript;sendChat();};
+  rec.onend=()=>{micOn=false;document.getElementById('micBtn').textContent=(lang==='zh'?'🎙 语音输入':'🎙 Voice input');};
+  if(micOn){rec.stop();return;}
+  rec.start();micOn=true;document.getElementById('micBtn').textContent=(lang==='zh'?'⏹ 聆听中…':'⏹ Listening…');
+}
+
+/* ===================== Collaboration ===================== */
+function runCollab(){
+  const inp=document.getElementById('collabInput').value;
+  let topic=inp;
+  const m=topic.match(/对(.+?)的看法的?[:：]?\s*(.*)$/)||topic.match(/[:：]\s*(.+)$/);
+  if(m)topic=(m[2]||m[1]||'').trim()||inp;
+  const box=document.getElementById('collabBox');box.innerHTML='';
+  const ids=['friend','mentor','family'].filter(id=>app.roles.find(r=>r.id===id));
+  const parts=ids.map(id=>{const r=app.roles.find(x=>x.id===id);return {name:roleName(id),text:collabReply(r,topic)};});
+  if(document.getElementById('collabMode').value==='merge'){
+    const tt=topic||inp;
+    const merged = lang==='zh'
+      ? `【整合意见】关于「${tt}」：朋友希望你别压力太大、先照顾心情；导师建议拆成小步、定优先级；家庭伙伴提醒你劳逸结合、按时吃饭。三者结合——先稳住情绪，再理性推进，同时别累着自己。`
+      : `[Synthesis] On "${tt}": the Confidant wants you to ease the pressure and care for your mood; the Mentor suggests small steps and clear priorities; the Family Companion reminds you to balance work and rest and eat well. Combined — steady your emotions first, then move forward rationally, and don't wear yourself out.`;
+    addMsg(box,'bot',merged,roleName('mentor'));
+  }else{
+    parts.forEach(p=>addMsg(box,'bot',p.text,p.name));
+  }
+}
+function collabReply(r,topic){
+  const t0=topic||(lang==='zh'?'这件事':'this');
+  if(r.id==='friend')return COLLAB.friend[lang].replace('{t}',t0);
+  if(r.id==='mentor')return COLLAB.mentor[lang].replace('{t}',t0);
+  if(r.id==='family')return COLLAB.family[lang].replace('{t}',t0);
+  return COLLAB.default[lang].replace('{n}',r.name).replace('{t}',t0);
+}
+
+/* ===================== Memory ===================== */
+function renderMemory(){
+  const box=document.getElementById('memList');box.innerHTML='';
+  if(!app.memories.length){box.innerHTML='<p class="sub">'+t('mem_none')+'</p>';return;}
+  app.memories.forEach(mem=>{
+    const owner=roleName(mem.owner);
+    const others=app.roles.filter(r=>r.id!==mem.owner);
+    const pills=others.length?others.map(o=>{const on=(mem.shared||[]).includes(o.id);
+      return `<span class="pill ${on?'on':''}" onclick="toggleShare('${mem.id}','${o.id}')">${on?'✓ ':''}${esc(roleName(o.id))}</span>`;}).join('')
+      :'<span class="sub">'+t('mem_other_none')+'</span>';
+    const d=document.createElement('div');d.className='mem';
+    d.innerHTML=`<div class="ct">${esc(mem.content)}</div>
+      <div class="own">${(lang==='zh'?'归属角色：':'Owned by: ')}<b>${esc(owner)}</b>${(lang==='zh'?'（默认仅该角色可访问）':' (only this role by default)')}</div>
+      <div>${(lang==='zh'?'授权访问：':'Grant access: ')}${pills}</div>`;
+    box.appendChild(d);
+  });
+}
+function toggleShare(memId,roleId){
+  const mem=app.memories.find(m=>m.id===memId);if(!mem)return;
+  mem.shared=mem.shared||[];
+  if(mem.shared.includes(roleId))mem.shared=mem.shared.filter(x=>x!==roleId);
+  else mem.shared.push(roleId);
+  save();renderMemory();
+}
+
+/* ===================== Image mode ===================== */
+function previewImg(){const f=document.getElementById('imgFile').files[0];if(f){const rd=new FileReader();rd.onload=e=>{document.getElementById('imgWrap').innerHTML=`<img class="imgprev" src="${e.target.result}">`;};rd.readAsDataURL(f);}}
+function genImageCopy(){
+  const f=document.getElementById('imgFile').files[0];const rid=document.getElementById('imgRole').value;
+  const box=document.getElementById('imgBox');
+  if(!f){addMsg(box,'bot',t('img_no'),t('sys_label'));return;}
+  const r=app.roles.find(x=>x.id===rid);
+  const copy=pick((IMGCOPIES[r.id]||IMGCOPIES.default).map(x=>x[lang]));
+  addMsg(box,'me',t('img_me'),t('who_me'));
+  addMsg(box,'bot',`（${roleName(rid)}·${(lang==='zh'?'图像模式示意':'image mode demo')}）${copy}`,roleName(rid));
+  if(app.tts)speak(copy);
+}
+
+/* ===================== Language ===================== */
+function setLang(v){lang=v;localStorage.setItem('companion_lang',v);document.documentElement.lang=(v==='en'?'en':'zh-CN');document.getElementById('langSel').value=v;applyLang();}
+function applyLang(){
+  document.documentElement.lang=(lang==='en'?'en':'zh-CN');
+  document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{e.placeholder=t(e.dataset.i18nPh);});
+  // placeholders held in data-i18n (inputs) via attribute mapping
+  const phMap={chatInput:'chat_ph',collabInput:'collab_ph',newName:'f_name_ph',newBg:'f_bg_ph',newPer:'f_per_ph',newRel:'f_rel_ph',newStyle:'f_style_ph',newBound:'f_bound_ph'};
+  Object.entries(phMap).forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.placeholder=t(k);});
+  document.getElementById('ttsBtn').textContent=(lang==='zh'?'🔊 语音播报：':'🔊 Speak: ')+(app.tts?(lang==='zh'?'开':'On'):(lang==='zh'?'关':'Off'));
+  document.getElementById('micBtn').textContent=micOn?(lang==='zh'?'⏹ 聆听中…':'⏹ Listening…'):(lang==='zh'?'🎙 语音输入':'🎙 Voice input');
+  renderRoles();fillRoleSelects();renderChat();renderMemory();
+}
+
+/* ===================== utils ===================== */
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+/* init */
+document.getElementById('langSel').value=lang;
+applyLang();
+</script>
+<script src="tour.js"></script>
+</body>
+</html>
